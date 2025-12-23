@@ -40,7 +40,13 @@ extern uint8_t ScaleFlag; // <- ScaleFlag needs to visible in order for the emul
 #define S_Shaped		0x5
 #define Z_Shaped		0x6
 
-//void LCD_tetraminoes(uint8_t shape, ...){}
+typedef	struct  
+{
+   uint8_t x;
+   uint8_t y;
+}Coord_str;
+
+void LCD_tetraminoes(uint8_t shape, Coord_str xy);
 
 
 int main(void)
@@ -53,6 +59,8 @@ int main(void)
 	
 	int i = 0;
 	int l = 0;
+	
+	Coord_str coord;
 	
 	//----START: DRAW PLAYING FIELD----
 	for(i=0;i<3;i++){
@@ -75,13 +83,11 @@ int main(void)
 	}
 	//----END: DRAW FOUNDAMENTAL BOCK----
 	
-	//----START: DRAW I-SHAPED----
-	for(l=0;l<(dim*3)+1;l = l+dim){
-		for(i=0;i<dim;i++){
-			LCD_DrawLine(50+l, 220+i, (50+dim)+l, 220+i, Green);
-		}
-	}
-	//----END: DRAW I-SHAPED----
+	coord.x = 100;
+	coord.y = 250;
+	
+	LCD_tetraminoes(T_Shaped, coord);
+	
 	
 	
 	//init_timer(0, 0x1312D0 ); 						/* 50ms * 25MHz = 1.25*10^6 = 0x1312D0 */
@@ -100,7 +106,68 @@ int main(void)
   }
 }
 
-//void LCD_tetraminoes(){}
+void LCD_tetraminoes(uint8_t shape, Coord_str xy){
+	
+		int i = 0;
+		int l = 0;
+		uint8_t x0 = xy.x;
+		uint8_t y0 = xy.y;
+		
+		int dim = 14;	//dimension of foundamental block (square 14px * 14px)
+	
+	switch (shape) {
+	
+		case I_Shaped:
+			//----START: DRAW I-SHAPED----
+			for(l=0;l<(dim*3)+1;l = l+dim){
+				for(i=0;i<dim;i++){
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+				}
+			}
+			break;
+			//----END: DRAW I-SHAPED----
+	
+		case T_Shaped:
+			//----START: DRAW T-SHAPED----
+			for(l=0;l<(dim*2)+1;l = l+dim){
+				if(l!=dim){
+				for(i=0;i<dim;i++){
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+				}}else{
+				
+				for(i=0;i<dim*2;i++){
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+				}}
+				
+			}
+			break;
+			//----END: DRAW T-SHAPED----
+			
+		case Z_Shaped:
+			//----START: DRAW Z-SHAPED----
+				for(l=0;l<(dim*2)+1;l = l+dim){ //x-axe
+					if(!l){
+					for(i=0;i<dim;i++){
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+					}}else if (l==dim){
+					
+					for(i=0;i<dim*2;i++){
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+					}}else if (l==2*dim){
+					
+					for(i=dim;i<dim*2;i++){
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+					}}
+					
+				}
+				break;
+			//----END: DRAW Z-SHAPED----
+		default:
+        // blocco di istruzioni predefinito
+        break;
+	}
+
+}
 
 
 /*********************************************************************************************************
