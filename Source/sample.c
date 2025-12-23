@@ -42,11 +42,12 @@ extern uint8_t ScaleFlag; // <- ScaleFlag needs to visible in order for the emul
 
 typedef	struct  
 {
-   uint8_t x;
-   uint8_t y;
+   uint16_t x;
+   uint16_t y;
 }Coord_str;
 
-void LCD_tetraminoes(uint8_t shape, Coord_str xy);
+void LCD_tetraminoes(uint8_t shape, Coord_str xy, uint8_t set);		//if set is equal to 1 it draw the tetraminoes otherwise it erase it
+void tetrisInit();
 
 
 int main(void)
@@ -57,23 +58,11 @@ int main(void)
 	//TouchPanel_Calibrate();
 	LCD_Clear(Black);
 	
+	tetrisInit();
+	
 	int i = 0;
-	int l = 0;
 	
 	Coord_str coord;
-	
-	//----START: DRAW PLAYING FIELD----
-	for(i=0;i<3;i++){
-		LCD_DrawLine(i, 20, i, 319, White);
-		LCD_DrawLine(0, 319-i, 150, 319-i, White);
-		LCD_DrawLine(150-i, 319, 150-i, 20, White);
-		LCD_DrawLine(150, 20+i, 0, 20+i, White);
-	}
-	//----END: DRAW PLAYING FIELD----
-	
-	GUI_Text(160, 40, (uint8_t *) "SCORE", Red, Black);
-	GUI_Text(160, 120, (uint8_t *) "TOP SCORE", Red, Black);
-	GUI_Text(160, 200, (uint8_t *) "LINES", Red, Black);
 	
 	int dim = 14;	//dimension of foundamental block (square 14px * 14px)
 	
@@ -86,7 +75,7 @@ int main(void)
 	coord.x = 100;
 	coord.y = 250;
 	
-	LCD_tetraminoes(T_Shaped, coord);
+	LCD_tetraminoes(Z_Shaped, coord, 1);
 	
 	
 	
@@ -106,14 +95,47 @@ int main(void)
   }
 }
 
-void LCD_tetraminoes(uint8_t shape, Coord_str xy){
+
+void tetrisInit(){
 	
-		int i = 0;
-		int l = 0;
-		uint8_t x0 = xy.x;
-		uint8_t y0 = xy.y;
+	int i = 0;
+
+	//----START: DRAW PLAYING FIELD----
+	for(i=0;i<3;i++){
+		LCD_DrawLine(i, 20, i, 319, White);
+		LCD_DrawLine(0, 319-i, 150, 319-i, White);
+		LCD_DrawLine(150-i, 319, 150-i, 20, White);
+		LCD_DrawLine(150, 20+i, 0, 20+i, White);
+	}
+	//----END: DRAW PLAYING FIELD----
+	
+	GUI_Text(160, 40, (uint8_t *) "SCORE", Red, Black);
+	GUI_Text(160, 120, (uint8_t *) "TOP SCORE", Red, Black);
+	GUI_Text(160, 200, (uint8_t *) "LINES", Red, Black);
+
+}
+
+
+void LCD_tetraminoes(uint8_t shape, Coord_str xy, uint8_t set){
+	
+	int i = 0;
+	int l = 0;
+	uint16_t x0 = xy.x;
+	uint16_t y0 = xy.y;
+	uint16_t color = Black;
+	
+	int dim = 14;	//dimension of foundamental block (square 14px * 14px)
+	
+	if (set){
+		if(shape == I_Shaped) color = Cyan;
+		if(shape == T_Shaped) color = Magenta;
+		if(shape == Z_Shaped) color = Red;
+		if(shape == O_Shaped) color = Yellow;
+		if(shape == J_Shaped) color = Blue;
+		if(shape == L_Shaped) color = Grey;
+		if(shape == S_Shaped) color = Green;
+	}
 		
-		int dim = 14;	//dimension of foundamental block (square 14px * 14px)
 	
 	switch (shape) {
 	
@@ -121,7 +143,7 @@ void LCD_tetraminoes(uint8_t shape, Coord_str xy){
 			//----START: DRAW I-SHAPED----
 			for(l=0;l<(dim*3)+1;l = l+dim){
 				for(i=0;i<dim;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
 				}
 			}
 			break;
@@ -132,11 +154,11 @@ void LCD_tetraminoes(uint8_t shape, Coord_str xy){
 			for(l=0;l<(dim*2)+1;l = l+dim){
 				if(l!=dim){
 				for(i=0;i<dim;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
 				}}else{
 				
 				for(i=0;i<dim*2;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
 				}}
 				
 			}
@@ -148,22 +170,22 @@ void LCD_tetraminoes(uint8_t shape, Coord_str xy){
 				for(l=0;l<(dim*2)+1;l = l+dim){ //x-axe
 					if(!l){
 					for(i=0;i<dim;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
 					}}else if (l==dim){
 					
 					for(i=0;i<dim*2;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
 					}}else if (l==2*dim){
 					
 					for(i=dim;i<dim*2;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, Green);
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
 					}}
 					
 				}
 				break;
 			//----END: DRAW Z-SHAPED----
 		default:
-        GUI_Text(x0, y0, (uint8_t *) "WRONG TETRAMINOES", Red, Black);
+        GUI_Text(x0, y0, (uint8_t *) "MISSING TETRAMINOES", Red, Black);
         break;
 	}
 
