@@ -40,7 +40,14 @@ extern uint8_t ScaleFlag; // <- ScaleFlag needs to visible in order for the emul
 #define S_Shaped		0x5
 #define Z_Shaped		0x6
 
-//void LCD_tetraminoes(uint8_t shape, ...){}
+typedef	struct  
+{
+   uint16_t x;
+   uint16_t y;
+}Coord_str;
+
+void LCD_tetraminoes(uint8_t shape, Coord_str xy, uint8_t set);		//if set is equal to 1 it draw the tetraminoes otherwise it erase it
+void tetrisInit();
 
 
 int main(void)
@@ -51,21 +58,11 @@ int main(void)
 	//TouchPanel_Calibrate();
 	LCD_Clear(Black);
 	
+	tetrisInit();
+	
 	int i = 0;
-	int l = 0;
 	
-	//----START: DRAW PLAYING FIELD----
-	for(i=0;i<3;i++){
-		LCD_DrawLine(i, 20, i, 319, White);
-		LCD_DrawLine(0, 319-i, 150, 319-i, White);
-		LCD_DrawLine(150-i, 319, 150-i, 20, White);
-		LCD_DrawLine(150, 20+i, 0, 20+i, White);
-	}
-	//----END: DRAW PLAYING FIELD----
-	
-	GUI_Text(160, 40, (uint8_t *) "SCORE", Red, Black);
-	GUI_Text(160, 120, (uint8_t *) "TOP SCORE", Red, Black);
-	GUI_Text(160, 200, (uint8_t *) "LINES", Red, Black);
+	Coord_str coord;
 	
 	int dim = 14;	//dimension of foundamental block (square 14px * 14px)
 	
@@ -75,13 +72,11 @@ int main(void)
 	}
 	//----END: DRAW FOUNDAMENTAL BOCK----
 	
-	//----START: DRAW I-SHAPED----
-	for(l=0;l<(dim*3)+1;l = l+dim){
-		for(i=0;i<dim;i++){
-			LCD_DrawLine(50+l, 220+i, (50+dim)+l, 220+i, Green);
-		}
-	}
-	//----END: DRAW I-SHAPED----
+	coord.x = 100;
+	coord.y = 250;
+	
+	LCD_tetraminoes(Z_Shaped, coord, 1);
+	
 	
 	
 	//init_timer(0, 0x1312D0 ); 						/* 50ms * 25MHz = 1.25*10^6 = 0x1312D0 */
@@ -100,7 +95,101 @@ int main(void)
   }
 }
 
-//void LCD_tetraminoes(){}
+
+void tetrisInit(){
+	
+	int i = 0;
+
+	//----START: DRAW PLAYING FIELD----
+	for(i=0;i<3;i++){
+		LCD_DrawLine(i, 20, i, 319, White);
+		LCD_DrawLine(0, 319-i, 150, 319-i, White);
+		LCD_DrawLine(150-i, 319, 150-i, 20, White);
+		LCD_DrawLine(150, 20+i, 0, 20+i, White);
+	}
+	//----END: DRAW PLAYING FIELD----
+	
+	GUI_Text(160, 40, (uint8_t *) "SCORE", Red, Black);
+	GUI_Text(160, 120, (uint8_t *) "TOP SCORE", Red, Black);
+	GUI_Text(160, 200, (uint8_t *) "LINES", Red, Black);
+
+}
+
+
+void LCD_tetraminoes(uint8_t shape, Coord_str xy, uint8_t set){
+	
+	int i = 0;
+	int l = 0;
+	uint16_t x0 = xy.x;
+	uint16_t y0 = xy.y;
+	uint16_t color = Black;
+	
+	int dim = 14;	//dimension of foundamental block (square 14px * 14px)
+	
+	if (set){
+		if(shape == I_Shaped) color = Cyan;
+		if(shape == T_Shaped) color = Magenta;
+		if(shape == Z_Shaped) color = Red;
+		if(shape == O_Shaped) color = Yellow;
+		if(shape == J_Shaped) color = Blue;
+		if(shape == L_Shaped) color = Grey;
+		if(shape == S_Shaped) color = Green;
+	}
+		
+	
+	switch (shape) {
+	
+		case I_Shaped:
+			//----START: DRAW I-SHAPED----
+			for(l=0;l<(dim*3)+1;l = l+dim){
+				for(i=0;i<dim;i++){
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
+				}
+			}
+			break;
+			//----END: DRAW I-SHAPED----
+	
+		case T_Shaped:
+			//----START: DRAW T-SHAPED----
+			for(l=0;l<(dim*2)+1;l = l+dim){
+				if(l!=dim){
+				for(i=0;i<dim;i++){
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
+				}}else{
+				
+				for(i=0;i<dim*2;i++){
+					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
+				}}
+				
+			}
+			break;
+			//----END: DRAW T-SHAPED----
+			
+		case Z_Shaped:
+			//----START: DRAW Z-SHAPED----
+				for(l=0;l<(dim*2)+1;l = l+dim){ //x-axe
+					if(!l){
+					for(i=0;i<dim;i++){
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
+					}}else if (l==dim){
+					
+					for(i=0;i<dim*2;i++){
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
+					}}else if (l==2*dim){
+					
+					for(i=dim;i<dim*2;i++){
+						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
+					}}
+					
+				}
+				break;
+			//----END: DRAW Z-SHAPED----
+		default:
+        GUI_Text(x0, y0, (uint8_t *) "MISSING TETRAMINOES", Red, Black);
+        break;
+	}
+
+}
 
 
 /*********************************************************************************************************
