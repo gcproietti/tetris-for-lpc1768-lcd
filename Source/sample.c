@@ -163,7 +163,7 @@ void LCD_tetraminoes(uint8_t shape, Coord_str xy){
 				break;
 			//----END: DRAW Z-SHAPED----
 		default:
-        // blocco di istruzioni predefinito
+        GUI_Text(x0, y0, (uint8_t *) "WRONG TETRAMINOES", Red, Black);
         break;
 	}
 
