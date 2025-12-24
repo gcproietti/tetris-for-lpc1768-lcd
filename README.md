@@ -42,7 +42,7 @@ The system is built without an Operating System (Bare-Metal), utilizing the foll
 ## 🚀 How to Run
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/yourusername/tetris-lpc1768.git](https://github.com/yourusername/tetris-lpc1768.git)
+    git clone [https://github.com/gcproietti/tetris-for-lpc1768-lcd](https://github.com/gcproietti/tetris-for-lpc1768-lcd)
     ```
 2.  **Open in Keil µVision:**
     * Launch Keil µVision 5.
