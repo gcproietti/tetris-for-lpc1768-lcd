@@ -1,7 +1,8 @@
 #include "button.h"
 #include "lpc17xx.h"
 
-extern int down;
+extern int k1down;
+extern int k2down;
 
 void EINT0_IRQHandler (void)	  	/* INT0														 */
 {		
@@ -12,16 +13,16 @@ void EINT0_IRQHandler (void)	  	/* INT0														 */
 
 void EINT1_IRQHandler (void)	  	/* KEY1														 */
 {
-	NVIC_DisableIRQ(EINT1_IRQn);		/* disable Button interrupts			 */
-	LPC_PINCON->PINSEL4    &= ~(1 << 22);     /* GPIO pin selection */
-	down=1;
-	LPC_SC->EXTINT &= (1 << 1);     /* clear pending interrupt         */
+	NVIC_DisableIRQ(EINT1_IRQn);							// Disabilito l'interrupt del bottone
+	LPC_PINCON->PINSEL4    &= ~(1 << 22);     // Trasformo il pin in GPIO
+	k1down=1;																		// Salto al RIT grazie all'uso della flag
+	LPC_SC->EXTINT &= (1 << 1);     					// Pulisco eventuali interrupt pendenti
 }
 
 void EINT2_IRQHandler (void)	  	/* KEY2														 */
 {
-	
-  LPC_SC->EXTINT &= (1 << 2);     /* clear pending interrupt         */    
+	NVIC_DisableIRQ(EINT2_IRQn);							// Disabilito l'interrupt del bottone
+	LPC_PINCON->PINSEL4    &= ~(1 << 24);     // Trasformo il pin in GPIO
+	k2down=1;																		// Salto al RIT grazie all'uso della flag
+  LPC_SC->EXTINT &= (1 << 2);     					/* clear pending interrupt         */    
 }
-
-
