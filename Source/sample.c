@@ -40,13 +40,22 @@ extern uint8_t ScaleFlag; // <- ScaleFlag needs to visible in order for the emul
 #define S_Shaped		0x5
 #define Z_Shaped		0x6
 
+#define dim 14	//dimension of foundamental block (square 14px * 14px)
+
 typedef	struct  
 {
    uint16_t x;
    uint16_t y;
 }Coord_str;
 
-void LCD_tetraminoes(uint8_t shape, Coord_str xy, uint8_t set);		//if set is equal to 1 it draw the tetraminoes otherwise it erase it
+uint16_t matrice[4][4]= {
+    {0, 1, 1, 0},
+    {1, 1, 0, 0},
+    {0, 0, 0, 0},
+		{0, 0, 0, 0}
+};
+
+void LCD_tetraminoes(uint16_t matrice[4][4], Coord_str xy, uint8_t set);		//if set is equal to 1 it draw the tetraminoes otherwise it erase it
 void tetrisInit();
 void update_score(uint16_t score, uint16_t topScore, uint16_t lines);
 void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest);
@@ -70,18 +79,20 @@ int main(void)
 	
 	Coord_str coord;
 	
-	int dim = 14;	//dimension of foundamental block (square 14px * 14px)
+	//int dim = 14;	//dimension of foundamental block (square 14px * 14px)
 	
-	//----START: DRAW FOUNDAMENTAL BOCK----
+	/*----START: DRAW FOUNDAMENTAL BOCK----
 	for(i=0;i<dim;i++){
 		LCD_DrawLine(50, 150+i, (50+dim), 150+i, White);
 	}
-	//----END: DRAW FOUNDAMENTAL BOCK----
+	//----END: DRAW FOUNDAMENTAL BOCK----*/
 	
-	coord.x = 100;
-	coord.y = 250;
+	coord.x = 50;
+	coord.y = 150;
 	
-	LCD_tetraminoes(S_Shaped, coord, 1);
+
+	
+	LCD_tetraminoes(matrice, coord, 1);
 	
 	
 	
@@ -196,140 +207,27 @@ void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest) {
 * Return         : None
 * Attention		   : None
 *******************************************************************************/
-void LCD_tetraminoes(uint8_t shape, Coord_str xy, uint8_t set){
+void LCD_tetraminoes(uint16_t matrice[4][4], Coord_str xy, uint8_t set){
 	
 	int i = 0;
 	int l = 0;
+	int h = 0;
 	uint16_t x0 = xy.x;
 	uint16_t y0 = xy.y;
 	uint16_t color = Black;
-	
-	int dim = 14;	//dimension of foundamental block (square 14px * 14px)
-	
-	if (set){
-		if(shape == I_Shaped) color = Cyan;
-		if(shape == T_Shaped) color = Magenta;
-		if(shape == Z_Shaped) color = Red;
-		if(shape == O_Shaped) color = Yellow;
-		if(shape == J_Shaped) color = Blue;
-		if(shape == L_Shaped) color = Grey;
-		if(shape == S_Shaped) color = Green;
-	}
-		
-	
-	switch (shape) {
-	
-		case I_Shaped:
-			//----START: DRAW I-SHAPED----
-			for(l=0;l<(dim*3)+1;l = l+dim){
-				for(i=0;i<dim;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-				}
-			}
-			break;
-			//----END: DRAW I-SHAPED----
-	
-		case T_Shaped:
-			//----START: DRAW T-SHAPED----
-			for(l=0;l<(dim*2)+1;l = l+dim){
-				if(l!=dim){
-				for(i=0;i<dim;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-				}}else{
-				
-				for(i=0;i<dim*2;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-				}}
-				
-			}
-			break;
-			//----END: DRAW T-SHAPED----
+
+	if (set)color = Yellow;
+
+	for(l=0;l<4;l++){	//row
+		for(i=0;i<4;i++){	//column
 			
-		case Z_Shaped:
-			//----START: DRAW Z-SHAPED----
-				for(l=0;l<(dim*2)+1;l = l+dim){ //x-axe
-					if(!l){
-					for(i=0;i<dim;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-					}}else if (l==dim){
-					
-					for(i=0;i<dim*2;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-					}}else if (l==2*dim){
-					
-					for(i=dim;i<dim*2;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-					}}
-					
-				}
-				break;
-			//----END: DRAW Z-SHAPED----
-				
-		case O_Shaped:
-			//----START: DRAW O-SHAPED----
-			for(l=0;l<(dim)+1;l = l+dim){
-				for(i=0;i<dim*2;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
+			if(matrice[l][i]){
+				for(h=0;h<dim+1;h++){
+					LCD_DrawLine(x0+i*dim, y0+l*dim+h, (x0+i*dim)+dim, y0+l*dim+h, color);
 				}
 			}
-			//----END: DRAW O-SHAPED----
-		break;
-		case J_Shaped:
-			//----START: DRAW J-SHAPED----
-			for(l=0;l<(dim)+1;l = l+dim){
-				if(!l){
-				for(i=dim*2;i<(dim*3)+1;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-				}}else{
-				
-				for(i=0;i<(dim*3)+1;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-				}}
-				
-			}
-			//----END: DRAW J-SHAPED----
-		break;
-		case L_Shaped:
-			//----START: DRAW L-SHAPED----
-			for(l=0;l<(dim)+1;l = l+dim){
-				if(!l){
-					for(i=0;i<(dim*3)+1;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-				}
-				}else{
-					for(i=dim*2;i<(dim*3)+1;i++){
-					LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-				
-				}}
-				
-			}
-			//----END: DRAW L-SHAPED----
-		break;
-		case S_Shaped:
-			//----START: DRAW S-SHAPED----
-				for(l=0;l<(dim*2)+1;l = l+dim){ //x-axe
-					if(!l){
-					for(i=dim;i<dim*2;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-					}
-					}else if (l==dim){
-					
-					for(i=0;i<dim*2;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-					}
-					}else if (l==2*dim){
-					for(i=0;i<dim;i++){
-						LCD_DrawLine(x0+l, y0+i, (x0+dim)+l, y0+i, color);
-					}
-					
-					}
-					
-				}
-			//----END: DRAW S-SHAPED----
-		break;
-		default:
-        GUI_Text(x0, y0, (uint8_t *) "MISSING TETRAMINOES", Red, Black);
-        break;
+			
+		}
 	}
 
 }
