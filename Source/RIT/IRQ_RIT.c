@@ -21,8 +21,8 @@
 **
 ******************************************************************************/
 
-volatile int k1down = 0;
-volatile int k2down = 0;			 
+extern volatile int k1down;
+extern volatile int k2down;			 
 volatile int state_game = 0;   		// Gestisce lo start, pausa e ripresa del gioco (1 = play, 0 = pausa)
 
 void RIT_IRQHandler (void)
