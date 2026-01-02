@@ -1,8 +1,9 @@
 #include "button.h"
-#include "lpc17xx.h"
+#include "LPC17xx.h"
 
-extern int k1down;
-extern int k2down;
+
+int k1down;								// Variabile di stato per controllar se k1 è premuto
+int k2down;								// Variabile di stato per controllar se k2 è premuto
 
 void EINT0_IRQHandler (void)	  	/* INT0														 */
 {		
