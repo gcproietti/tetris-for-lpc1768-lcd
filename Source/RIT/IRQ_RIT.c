@@ -27,7 +27,7 @@ extern volatile int k1down;
 extern volatile int k2down;			 
 volatile int state_game = 0;   		// Gestisce lo start, pausa e ripresa del gioco (1 = play, 0 = pausa)
 
-extern uint16_t matrice[4][4];
+extern uint8_t tetramino[4][4];
 extern Coord_str coord_init;
 
 
@@ -42,72 +42,7 @@ void RIT_IRQHandler (void)
 	static int right = 0;
 	static int left = 0;
 	
-		
-	// Joystick DOWN 
-	if ((LPC_GPIO1->FIOPIN & (1<<26)) == 0){
-		new_speed = 10;
-	}
-	else {
-		// Altrimenti velocità normale
-	}
 	
-	
-	// Timer caduta 1s
-	tick++;
-	if (tick >= new_speed){	
-		tick = 0;											// Azzero contatore
-		/*---Gestione movimento del tetrocazzo----*/
-	}
-	
-	//---- Gestione joystick ----
-	
-	// Joystick UP
-	if ((LPC_GPIO1->FIOPIN & (1<<29)) == 0){
-		up++;
-		switch(up){
-			case 1:
-				//Implementare rotazione di 90°
-				break;
-			default:
-				break;
-		}
-	}
-	else {
-		up = 0;
-	}
-		
-	// Joystick RIGHT
-	if ((LPC_GPIO1->FIOPIN & (1<<28)) == 0){
-		right++;
-		switch(right){
-			case 1:
-				//Implementare shift a dx
-				break;
-			default:
-				break;
-		}
-	}
-	else {
-		right = 0;
-	}
-		
-	// Joystick LEFT
-	if ((LPC_GPIO1->FIOPIN & (1<<27)) == 0){
-		left++;
-		switch(left){
-			case 1:
-				//Implementare shift a sx
-				break;
-			default:
-				break;
-		}
-	}
-	else {
-		left = 0;
-	}
-	
-		
-	/* ---- GESTIONE DEI PULSANTI ----- */
 	
 	// Pulsante EINT1
 	if(k1down>=1){
@@ -124,17 +59,14 @@ void RIT_IRQHandler (void)
 				//}
 				//k1down++;
 			}
-			else{
+		else{
 				k1down = 0;																						// Rimetto a 0 la flag
 				LPC_PINCON->PINSEL4 |= (1 << 22);											// Rimetto il pin come EINT
 				NVIC_EnableIRQ(EINT1_IRQn);														// Riaccendo l'interrupt
-			}
+		}
 	//}
 	
 	if(state_game == 1){
-		
-			
-			/* ---- Gestione joystick ---- */
 		
 			// Joystick DOWN 
 			if ((LPC_GPIO1->FIOPIN & (1<<26)) == 0){
@@ -142,19 +74,20 @@ void RIT_IRQHandler (void)
 			}
 			else {
 				// Altrimenti velocità normale
-			};
+			}
 			
 			
 			// Timer caduta 1s
 			tick++;
 			if (tick >= new_speed){	
 				tick = 0;											// Azzero contatore
-				/* ----- Gestione movimento del tetramino ----- */
+				/*---Gestione movimento del tetramino----*/
 				LCD_tetraminoes(tetramino_I, coord_init, 0);
 				coord_init.y += 7;
 				LCD_tetraminoes(tetramino_I, coord_init, 1);
 			}
 			
+			//---- Gestione joystick ----
 			
 			// Joystick UP
 			if ((LPC_GPIO1->FIOPIN & (1<<29)) == 0){
@@ -176,8 +109,13 @@ void RIT_IRQHandler (void)
 				right++;
 				switch(right){
 					case 1:
-						//Implementare shift a dx
-												//collision(coord,dim,0);
+						  if(check_collision(tetramino, x+1, y) == 0) {
+								LCD_tetraminoes(tetramino, coord_schermo, 0);
+								x++;
+								LCD_tetraminoes(tetramino, coord_schermo, 1);
+							}
+							else{
+							}
 						break;
 					default:
 						break;
@@ -192,7 +130,13 @@ void RIT_IRQHandler (void)
 				left++;
 				switch(left){
 					case 1:
-						//Implementare shift a sx
+							if(check_collision(current_tetramino, x-1, y) == 0) {
+								LCD_tetraminoes(current_tetramino, coord_schermo, 0);
+								x--;
+								LCD_tetraminoes(current_tetramino, coord_schermo, 1);
+							}
+							else{
+							}
 						break;
 					default:
 						break;
@@ -203,6 +147,9 @@ void RIT_IRQHandler (void)
 			}
 			
 				
+			/* ---- GESTIONE DEI PULSANTI ----- */
+	
+
 			// Pulsante EINT2
 			if(k2down>=1){
 					if((LPC_GPIO2->FIOPIN & (1<<12)) == 0){								// Controlla se il tasto è ancora premuto fisicamente

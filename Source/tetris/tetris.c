@@ -101,6 +101,47 @@ void update_field_matrix(uint8_t matrix[4][4], Coord_str coord){
 
 }
 
+/* Funzione che serve per controllare se ci sono delle collisioni
+			- uint8_t tetramino[4][4]: identifica la matrice del tetramino
+			- int next_x: identifica la colonna dove voglio spostare la matrice 
+			- int next_y: identifica la riga dove voglio spostare la matrice 
+*/
+int check_collision(uint8_t tetramino[4][4], int next_x, int next_y){
+		int r, c;
+		int row, col;
+		
+    for (r = 0; r < 4; r++) {											// Col doppio for controlliamo tutti i quadratini della matrice 
+        for (c = 0; c < 4; c++) {
+            
+            if (tetramino[r][c] != 0) {						// Il quadratino è pieno?
+                
+                // Calcolo coordinate del punto rispetto al campo di gioco
+                row = next_y + r;
+                col = next_x + c;
+
+                // Per controllare se esce lateralemente dal campo di gioco
+                if (col < 0 || col >= 10) {
+                    return 1; 
+                }
+
+                // Se vado oltre l'ultima riga
+                if (row >= 20) {
+                    return 1;
+                }
+
+                // Se il quadratino è già occupato
+								if (field_matrix[row][col] != 0) {
+                        return 1; 
+                }
+            }
+        }
+    }
+
+    // Se il ciclo finisce vuol dire che è tutto libero
+    return 0;
+}
+		
+
 Coord_str coordinate_su_schermo(Coord_str coord_matrice){
     Coord_str coord_schermo;
     coord_schermo.x = coord_matrice.x * dim; // supponendo che ogni cella sia 14 pixel di larghezza
