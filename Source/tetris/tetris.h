@@ -31,7 +31,7 @@ Coord_str coordinate_su_schermo(Coord_str coord_matrice);
 void LCD_tetraminoes(uint8_t matrice[4][4], Coord_str xy, uint8_t set);
 void update_score(uint16_t score, uint16_t topScore, uint16_t lines);
 void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest);
+int check_collision(uint8_t tetramino[4][4], int next_x, int next_y);
 
-//int collision(Coord_str coord, int16_t increase_x, int16_t increase_y);
 
 #endif

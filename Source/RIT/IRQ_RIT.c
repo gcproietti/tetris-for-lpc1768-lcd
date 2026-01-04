@@ -109,10 +109,10 @@ void RIT_IRQHandler (void)
 				right++;
 				switch(right){
 					case 1:
-						  if(check_collision(tetramino, x+1, y) == 0) {
-								LCD_tetraminoes(tetramino, coord_schermo, 0);
-								x++;
-								LCD_tetraminoes(tetramino, coord_schermo, 1);
+						  if(check_collision(tetramino, coord_init.x+1, coord_init.y) == 0) {
+								LCD_tetraminoes(tetramino, coord_init, 0);
+								coord_init.x += dim;
+								LCD_tetraminoes(tetramino, coord_init, 1);
 							}
 							else{
 							}
@@ -130,10 +130,10 @@ void RIT_IRQHandler (void)
 				left++;
 				switch(left){
 					case 1:
-							if(check_collision(current_tetramino, x-1, y) == 0) {
-								LCD_tetraminoes(current_tetramino, coord_schermo, 0);
-								x--;
-								LCD_tetraminoes(current_tetramino, coord_schermo, 1);
+							if(check_collision(tetramino, coord_init.x+1, coord_init.y) == 1) {
+								LCD_tetraminoes(tetramino, coord_init, 0);
+								coord_init.x -= dim;
+								LCD_tetraminoes(tetramino, coord_init, 1);
 							}
 							else{
 							}

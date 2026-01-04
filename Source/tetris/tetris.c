@@ -106,46 +106,54 @@ void update_field_matrix(uint8_t matrix[4][4], Coord_str coord){
 			- int next_x: identifica la colonna dove voglio spostare la matrice 
 			- int next_y: identifica la riga dove voglio spostare la matrice 
 */
-int check_collision(uint8_t tetramino[4][4], int next_x, int next_y){
-		int r, c;
-		int row, col;
-		
-    for (r = 0; r < 4; r++) {											// Col doppio for controlliamo tutti i quadratini della matrice 
+int check_collision(uint8_t tetramino[4][4], int next_x_pixel, int next_y_pixel) {
+    int r, c;           // Indici locali tetramino (0-3)
+    int row, col;       // Indici globali campo (0-19, 0-9)
+    
+		// Conversione da pixel a griglia con arrotandamento per eccesso 
+    int grid_x = (next_x_pixel + dim - 1) / dim; 
+    int grid_y = (next_y_pixel + dim - 1) / dim;
+
+		// Controlliamo ogni blocco del tetramino
+    for (r = 0; r < 4; r++) {
         for (c = 0; c < 4; c++) {
             
-            if (tetramino[r][c] != 0) {						// Il quadratino è pieno?
+            // Mi interessa solo se il blocco è pieno
+            if (tetramino[r][c] == 1) {
                 
-                // Calcolo coordinate del punto rispetto al campo di gioco
-                row = next_y + r;
-                col = next_x + c;
-
-                // Per controllare se esce lateralemente dal campo di gioco
-                if (col < 0 || col >= 10) {
+                // Calcolo posizione assoluta (quindi rispetto al campo da gioco)
+                row = grid_y + r;
+                col = grid_x + c;
+							
+								// Controllo collisione con i bordi
+                if (col < 0 || col >= 10 || row >= 20) {
                     return 1; 
                 }
-
-                // Se vado oltre l'ultima riga
-                if (row >= 20) {
-                    return 1;
-                }
-
-                // Se il quadratino è già occupato
-								if (field_matrix[row][col] != 0) {
-                        return 1; 
+								
+                // Controllo solo se sono dentro l'area giocabile (row >= 0)
+                if (row >= 0) {
+                    
+                    int valore_pezzo = 1; 													// Sappiamo che è 1 perché siamo dentro l'if
+                    int valore_campo = field_matrix[col][row]; 			
+                    
+                    // Se la somma fa 2, c'è sovrapposizione
+                    if (valore_pezzo + valore_campo >= 2) {
+                        return 1; // Collisione rilevata!
+                    }
                 }
             }
         }
     }
 
-    // Se il ciclo finisce vuol dire che è tutto libero
+    // Se arrivo qui, nessuna somma ha fatto 2. Via libera.
     return 0;
 }
 		
 
 Coord_str coordinate_su_schermo(Coord_str coord_matrice){
     Coord_str coord_schermo;
-    coord_schermo.x = coord_matrice.x * dim; // supponendo che ogni cella sia 14 pixel di larghezza
-    coord_schermo.y = coord_matrice.y * dim; // supponendo che ogni cella sia 14 pixel di altezza
+    coord_schermo.x = coord_matrice.x * dim; 					// supponendo che ogni cella sia 14 pixel di larghezza
+    coord_schermo.y = coord_matrice.y * dim; 					// supponendo che ogni cella sia 14 pixel di altezza
     return coord_schermo;
 }
 
