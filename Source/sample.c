@@ -22,11 +22,19 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "LPC17xx.h"
+#ifndef i
+uint16_t i = 0;
+#endif
+
+#ifndef j
+uint16_t j = 0;
+#endif
+
 #include "GLCD/GLCD.h" 
 #include "TouchPanel/TouchPanel.h"
 #include "timer/timer.h"
-#include "RIT/RIT.h"
 #include "tetris/tetris.h"
+#include "RIT/RIT.h"
 #include "button.h"
 
 
@@ -48,6 +56,9 @@ uint16_t score = 0;
 uint16_t topScore = 0;
 uint16_t lines = 0;
 
+uint8_t current_tetramino[4][4];
+extern Coord_str coord_init;
+
 volatile float periodo = 0.03; //sec
 
 int main(void)
@@ -58,7 +69,6 @@ int main(void)
 	BUTTON_init();
   //TP_Init();
 	//TouchPanel_Calibrate();
-
 	
 	tetrisInit();
 	
@@ -67,26 +77,13 @@ int main(void)
 	init_RIT(periodo*25000000);									/* RIT initialization 1 sec */
 	enable_RIT();
 	
-	
-	
-	
-	/*----START: DRAW FOUNDAMENTAL BOCK----
-	for(i=0;i<dim;i++){
-		LCD_DrawLine(50, 150+i, (50+dim), 150+i, White);
-	}
-	//----END: DRAW FOUNDAMENTAL BOCK----*/
-	
-	//init_timer(0, 0x1312D0 ); 						/* 50ms * 25MHz = 1.25*10^6 = 0x1312D0 */
-	//init_timer(0, 0x6108 ); 						  /* 1ms * 25MHz = 25*10^3 = 0x6108 */
-	//init_timer(0, 0x4E2 ); 						    /* 500us * 25MHz = 1.25*10^3 = 0x4E2 */
-	//init_timer(0, 0xC8 ); 						    /* 8us * 25MHz = 200 ~= 0xC8 */
-	//enable_timer(0);
+
 	
 	LPC_SC->PCON |= 0x1;									/* power-down	mode										*/
 	LPC_SC->PCON &= ~(0x2);						
 	
   while (1)	
-  {
+  {		
 		__ASM("wfi");
   }
 }

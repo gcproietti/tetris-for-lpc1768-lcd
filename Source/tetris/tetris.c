@@ -1,12 +1,5 @@
 #include "tetris.h"
 
-#ifndef i
-uint16_t i = 0;
-#endif
-
-#ifndef j
-uint16_t j = 0;
-#endif
 
 /**DEFINIZIONE DEI TETRAMINI SU MATRICI */
 uint8_t tetramino_I[4][4] = {
@@ -56,6 +49,7 @@ uint8_t tetramino_L[4][4] = {
 Coord_str coord_init;
 
 uint8_t field_matrix[10][20];
+extern uint8_t current_tetramino[4][4];
 
 void tetrisInit(){
 
@@ -81,6 +75,13 @@ void tetrisInit(){
 		for(j = 0; j < 20; j++){
 				field_matrix[i][j] = 0;
 		}
+	}
+	
+	for (i = 0; i < 4; i++) {
+    for (j = 0; j < 4; j++) {
+        current_tetramino[i][j] = 0;
+
+    }
 	}
 
 }
@@ -176,10 +177,14 @@ void update_score(uint16_t score, uint16_t topScore, uint16_t lines){
 }
 
 
-/**
- * Converts a uint16_t to ASCII in a uint8_t buffer.
- * Max value 65535 requires a 6-byte buffer.
- */
+/******************************************************************************
+* Function Name  : uint16_to_ascii_uint8
+* Description    : this function convert a 16-bit integer in a 8-bit poiter in ASCII standard
+* Input          : - val: 16-bit integer 
+* Output         : - *dest: pointer to ASCII converted string
+* Return         : None
+* Attention		   : None
+*******************************************************************************/
 void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest) {
     // We work from the end of the potential max string length
     // [d1][d2][d3][d4][d5][\0]
@@ -209,5 +214,63 @@ void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest) {
     }
     
     dest[j] = '\0'; // Null-terminate
+}
+
+
+
+/******************************************************************************
+* Function Name  : lfsr_random
+* Description    : this function generate a (semi)random number between 0 and 6 using the LFSR algorithm
+* Input          : None
+* Output         : None
+* Return         : 8-bit unsigned integer
+* Attention		   : None
+*******************************************************************************/
+uint8_t lfsr_random() {
+    static uint8_t state = 0xAC;    //initial seed
+		uint8_t remainder = 0x0;
+    uint8_t bit;
+
+		if (state == 0) {
+			GUI_Text(0, 0, (uint8_t *) "funct lfsr_random(): ERROR", Red, Black);
+				state = 0xAC; 
+    }
+    
+		// calculate the feedback bit using XOR logic (Tap bits: 7, 5, 4, 3)
+    bit  = ((state >> 7) ^ (state >> 5) ^ (state >> 4) ^ (state >> 3)) & 1;
+    
+    // right-shift by 1 and adding the calculated bit from left (shift to the right output)
+    state = (state >> 1) | (bit << 7);
+    
+    remainder = state % 7;
+
+    return remainder;
+}
+
+
+void random_tetramino(uint8_t matrix_rand[4][4]){
+	static uint8_t num = 7;
+	num = lfsr_random();
+	
+	
+	uint8_t temp_char_ptr[6];
+	uint16_to_ascii_uint8(num, temp_char_ptr);
+	GUI_Text(0, 0, (uint8_t *) temp_char_ptr, White, Black);
+	
+	
+	
+	for (i = 0; i < 4; i++) {
+    for (j = 0; j < 4; j++) {
+        if(!num) matrix_rand[i][j] = tetramino_I[i][j];
+				else if(num==1) matrix_rand[i][j] = tetramino_J[i][j];
+				else if(num==2) matrix_rand[i][j] = tetramino_L[i][j];
+				else if(num==3) matrix_rand[i][j] = tetramino_O[i][j];
+				else if(num==4) matrix_rand[i][j] = tetramino_S[i][j];
+				else if(num==5) matrix_rand[i][j] = tetramino_T[i][j];
+				else if(num==6) matrix_rand[i][j] = tetramino_Z[i][j];
+				else GUI_Text(0, 0, (uint8_t *) "funct random_tetramino(...): ERROR", Red, Black);
+    }
+	}
+
 }
 
