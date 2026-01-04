@@ -1,3 +1,12 @@
+/*********************************************************************************************************
+**--------------File Info---------------------------------------------------------------------------------
+** File name:           tetris.h
+** Last modified Date:  2026-01-04
+** Last Version:        V1.00
+** Descriptions:        functions to manage the tetris game
+** Correlated files:    
+**--------------------------------------------------------------------------------------------------------
+*********************************************************************************************************/
 #ifndef __TETRIS_H
 #define __TETRIS_H
 
@@ -14,6 +23,8 @@ extern uint16_t j;
 
 
 #define dim 14	//dimension of foundamental block (square 14px * 14px)
+#define x_init 41
+#define y_init 23
 
 /**DEFINIZIONE DEI TETRAMINI SU MATRICI */
 extern uint8_t tetramino_I[4][4];  

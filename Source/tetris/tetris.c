@@ -1,3 +1,12 @@
+/*********************************************************************************************************
+**--------------File Info---------------------------------------------------------------------------------
+** File name:           tetris.c
+** Last modified Date:  2026-01-04
+** Last Version:        V1.00
+** Descriptions:        functions to manage the tetris game
+** Correlated files:    tetris.h
+**--------------------------------------------------------------------------------------------------------
+*********************************************************************************************************/
 #include "tetris.h"
 
 
@@ -54,21 +63,33 @@ extern uint8_t current_tetramino[4][4];
 void tetrisInit(){
 
 	//----START: DRAW PLAYING FIELD----
+	// Playing field: 140px (width) x 280px (height) with 3px thick border
+	// Outer coordinates: (0, 20) - (143, 303)
+	// Inner coordinates (playable area): (3, 23) - (142, 302)
+	// Total dimensions with border: 144px x 283px
+	//
+	//  (0,20)------------------(143,20)
+	//    ¦                          ¦
+	//    ¦  (3,23)------(142,23)    ¦
+	//    ¦    ¦            ¦        ¦
+	//    ¦    ¦   140x280  ¦        ¦
+	//    ¦    ¦            ¦        ¦
+	//    ¦  (3,302)----(142,302)    ¦
+	//    ¦                          ¦
+	//  (0,303)----------------(143,303)
+	//
 	for(i=0;i<3;i++){
-		LCD_DrawLine(i, 20, i, 319, White);
-		LCD_DrawLine(0, 319-i, 150, 319-i, White);
-		LCD_DrawLine(150-i, 319, 150-i, 20, White);
-		LCD_DrawLine(150, 20+i, 0, 20+i, White);
+    LCD_DrawLine(i, 20, i, 303, White);              // Left border
+    LCD_DrawLine(0, 303-i, 143, 303-i, White);       // Bottom border
+    LCD_DrawLine(143-i, 303, 143-i, 20, White);      // Right border
+    LCD_DrawLine(143, 20+i, 0, 20+i, White);         // Top border
 	}
 	//----END: DRAW PLAYING FIELD----
-	// (0,20) - (150,20)
-	// |						|
-	// (0,319) - (150,319)
 	
 	update_score(0,0,0);
 	
-	coord_init.x = 47;
-	coord_init.y = 24;
+	coord_init.x = x_init;
+	coord_init.y = y_init;
 	
 	// initialization of field matrix with all of the elements at zero
 	for(i = 0; i < 10; i++){
@@ -232,8 +253,7 @@ uint8_t lfsr_random() {
     uint8_t bit;
 
 		if (state == 0) {
-			GUI_Text(0, 0, (uint8_t *) "funct lfsr_random(): ERROR", Red, Black);
-				state = 0xAC; 
+			state = 0xAC; 
     }
     
 		// calculate the feedback bit using XOR logic (Tap bits: 7, 5, 4, 3)
@@ -247,17 +267,21 @@ uint8_t lfsr_random() {
     return remainder;
 }
 
-
+/******************************************************************************
+* Function Name  : random_tetramino
+* Description    : this function generate a (semi)random matrix representing a tetramino using the lfsr_random() function
+* Input          : None
+* Output         : - matrix_rand: matrix representing the (semi)random tetramino 
+* Return         : None
+* Attention		   : None
+*******************************************************************************/
 void random_tetramino(uint8_t matrix_rand[4][4]){
 	static uint8_t num = 7;
 	num = lfsr_random();
 	
-	
 	uint8_t temp_char_ptr[6];
 	uint16_to_ascii_uint8(num, temp_char_ptr);
 	GUI_Text(0, 0, (uint8_t *) temp_char_ptr, White, Black);
-	
-	
 	
 	for (i = 0; i < 4; i++) {
     for (j = 0; j < 4; j++) {
