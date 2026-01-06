@@ -1,95 +1,120 @@
-/*********************************************************************************************************
-**--------------File Info---------------------------------------------------------------------------------
-** File name:           tetris.c
-** Last modified Date:  2026-01-04
-** Last Version:        V1.00
-** Descriptions:        functions to manage the tetris game
-** Correlated files:    tetris.h
-**--------------------------------------------------------------------------------------------------------
-*********************************************************************************************************/
 #include "tetris.h"
 
+#ifndef i
+uint16_t i = 0;
+#endif
 
-/**DEFINIZIONE DEI TETRAMINI SU MATRICI */
-uint8_t tetramino_I[4][4] = {
-    {1, 1, 1, 1},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0}
-};  
-uint8_t tetramino_O[4][4] = {
-    {0, 1, 1, 0},
-    {0, 1, 1, 0},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0}
+#ifndef j
+uint16_t j = 0;
+#endif
+
+
+Tetromino tetramino_I = {
+    .shape = {
+        {{0, 1, 0, 0},{0, 1, 0, 0},{0, 1, 0, 0},{0, 1, 0, 0}},
+        {{0, 0, 0, 0},{1, 1, 1, 1},{0, 0, 0, 0},{0, 0, 0, 0}},
+        {{0, 1, 0, 0},{0, 1, 0, 0},{0, 1, 0, 0},{0, 1, 0, 0}},
+        {{0, 0, 0, 0},{1, 1, 1, 1},{0, 0, 0, 0},{0, 0, 0, 0}}
+    },
+    .color = Cyan,
+    .depth_of_view = 0
 };
-uint8_t tetramino_T[4][4] = {
-    {1, 1, 1, 0},
-    {0, 1, 0, 0},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0}
+
+Tetromino tetramino_O = {
+    .shape = {
+        {{0, 0, 0, 0},{0, 1, 1, 0},{0, 1, 1, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{0, 1, 1, 0},{0, 1, 1, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{0, 1, 1, 0},{0, 1, 1, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{0, 1, 1, 0},{0, 1, 1, 0},{0, 0, 0, 0}}
+    },
+    .color = Yellow,
+    .depth_of_view = 0
 };
-uint8_t tetramino_S[4][4] = {
-    {0, 1, 1, 0},
-    {1, 1, 0, 0},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0}
+
+Tetromino tetramino_T = {
+    .shape = {
+        {{0, 1, 0, 0},{1, 1, 1, 0},{0, 0, 0, 0},{0, 0, 0, 0}},
+        {{0, 1, 0, 0},{0, 1, 1, 0},{0, 1, 0, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{1, 1, 1, 0},{0, 1, 0, 0},{0, 0, 0, 0}},
+        {{0, 1, 0, 0},{1, 1, 0, 0},{0, 1, 0, 0},{0, 0, 0, 0}}
+    },
+    .color = Blue,
+    .depth_of_view = 0
 };
-uint8_t tetramino_Z[4][4] = {
-    {1, 1, 0, 0},
-    {0, 1, 1, 0},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0}
+
+Tetromino tetramino_L = {
+    .shape = {
+        {{0, 1, 0, 0},{0, 1, 0, 0},{0, 1, 1, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{1, 1, 1, 0},{1, 0, 0, 0},{0, 0, 0, 0}},
+        {{1, 1, 0, 0},{0, 1, 0, 0},{0, 1, 0, 0},{0, 0, 0, 0}},
+        {{0, 0, 1, 0},{1, 1, 1, 0},{0, 0, 0, 0},{0, 0, 0, 0}}
+    },
+    .color = Magenta,
+    .depth_of_view = 0
 };
-uint8_t tetramino_J[4][4] = {
-    {0, 1, 0, 0},
-    {0, 1, 0, 0},
-    {1, 1, 0, 0},
-    {0, 0, 0, 0}
+
+Tetromino tetramino_J = {
+    .shape = {
+        {{0, 0, 1, 0},{0, 0, 1, 0},{0, 1, 1, 0},{0, 0, 0, 0}},
+        {{1, 0, 0, 0},{1, 1, 1, 0},{0, 0, 0, 0},{0, 0, 0, 0}},
+        {{0, 1, 1, 0},{0, 1, 0, 0},{0, 1, 0, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{1, 1, 1, 0},{0, 0, 1, 0},{0, 0, 0, 0}}
+    },
+    .color = Blue,
+    .depth_of_view = 0
 };
-uint8_t tetramino_L[4][4] = {
-    {1, 0, 0, 0},
-    {1, 0, 0, 0},
-    {1, 1, 0, 0},
-    {0, 0, 0, 0}
+
+Tetromino tetramino_S = {
+    .shape = {
+        {{0, 0, 0, 0},{0, 1, 1, 0},{1, 1, 0, 0},{0, 0, 0, 0}},
+        {{0, 1, 0, 0},{0, 1, 1, 0},{0, 0, 1, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{0, 1, 1, 0},{1, 1, 0, 0},{0, 0, 0, 0}},
+        {{0, 1, 0, 0},{0, 1, 1, 0},{0, 0, 1, 0},{0, 0, 0, 0}}
+    },
+    .color = Green,
+    .depth_of_view = 0
+};
+
+Tetromino tetramino_Z = {
+    .shape = {
+        {{0, 0, 0, 0},{1, 1, 0, 0},{0, 1, 1, 0},{0, 0, 0, 0}},
+        {{0, 0, 1, 0},{0, 1, 1, 0},{0, 1, 0, 0},{0, 0, 0, 0}},
+        {{0, 0, 0, 0},{1, 1, 0, 0},{0, 1, 1, 0},{0, 0, 0, 0}},
+        {{0, 0, 1, 0},{0, 1, 1, 0},{0, 1, 0, 0},{0, 0, 0, 0}}
+    },
+    .color = Red,
+    .depth_of_view = 0
 };
 
 //inital coordinates
 Coord_str coord_init;
 
+uint16_t score = 0;
+uint16_t topScore = 0;
+uint16_t lines = 0;
+
 uint8_t field_matrix[10][20];
-extern uint8_t current_tetramino[4][4];
+
+Tetromino current_tetromino;
 
 void tetrisInit(){
 
 	//----START: DRAW PLAYING FIELD----
-	// Playing field: 140px (width) x 280px (height) with 3px thick border
-	// Outer coordinates: (0, 20) - (143, 303)
-	// Inner coordinates (playable area): (3, 23) - (142, 302)
-	// Total dimensions with border: 144px x 283px
-	//
-	//  (0,20)------------------(143,20)
-	//    ¦                          ¦
-	//    ¦  (3,23)------(142,23)    ¦
-	//    ¦    ¦            ¦        ¦
-	//    ¦    ¦   140x280  ¦        ¦
-	//    ¦    ¦            ¦        ¦
-	//    ¦  (3,302)----(142,302)    ¦
-	//    ¦                          ¦
-	//  (0,303)----------------(143,303)
-	//
 	for(i=0;i<3;i++){
-    LCD_DrawLine(i, 20, i, 303, White);              // Left border
-    LCD_DrawLine(0, 303-i, 143, 303-i, White);       // Bottom border
-    LCD_DrawLine(143-i, 303, 143-i, 20, White);      // Right border
-    LCD_DrawLine(143, 20+i, 0, 20+i, White);         // Top border
+		LCD_DrawLine(i, 20, i, 319, White);
+		LCD_DrawLine(0, 319-i, 150, 319-i, White);
+		LCD_DrawLine(150-i, 319, 150-i, 20, White);
+		LCD_DrawLine(150, 20+i, 0, 20+i, White);
 	}
 	//----END: DRAW PLAYING FIELD----
+	// (0,20) - (150,20)
+	// |						|
+	// (0,319) - (150,319)
 	
 	update_score(0,0,0);
 	
-	coord_init.x = x_init;
-	coord_init.y = y_init;
+	coord_init.x = 3;				// Non devono essere x = 3 e y = 0?
+	coord_init.y = 0;
 	
 	// initialization of field matrix with all of the elements at zero
 	for(i = 0; i < 10; i++){
@@ -98,35 +123,71 @@ void tetrisInit(){
 		}
 	}
 	
-	for (i = 0; i < 4; i++) {
-    for (j = 0; j < 4; j++) {
-        current_tetramino[i][j] = 0;
-
-    }
-	}
+	generate_random_tetraminoes(&current_tetromino);
 
 }
 
-void ruota_90_gradi(uint8_t matrice[4][4], int righe, int colonne, uint8_t ruotata[4][4]){
-    //int ruotata[4][4];
-    for(i = 0; i < colonne; i++){
-        for(j = 0; j < righe; j++){
-            ruotata[i][j] = matrice[righe - 1 - j][i];
+void rotate_tetramino(Tetromino* tetramino){
+    tetramino->depth_of_view = (tetramino->depth_of_view + 1) % 4;    
+}
+
+/* Funzione che serve per controllare se ci sono delle collisioni
+			- Tetromino tetramino: la struct che contiene tutte le rotazioni e l'indice attuale
+			- int next_x_pixel: posizione orizzontale in PIXEL
+			- int next_y_pixel: posizione verticale in PIXEL
+*/
+uint8_t check_collision(Tetromino t, int next_x_pixel, int next_y_pixel) {
+    int r, c;           // Indici locali tetramino (0-3)
+    int row, col;       // Indici globali campo (0-19, 0-9)
+    
+    // 1. Conversione da pixel a griglia (Grid Coordinate)
+    // Formula per arrotondamento per eccesso (ceiling): (val + dim - 1) / dim
+    int grid_x = (next_x_pixel + dim - 1) / dim; 
+    int grid_y = (next_y_pixel + dim - 1) / dim;
+
+    // 2. Ciclo sui 4x4 blocchi del pezzo
+    for (r = 0; r < 4; r++) {
+        for (c = 0; c < 4; c++) {
+            
+            // --- QUI CAMBIA TUTTO ---
+            // Accediamo alla forma corretta usando l'indice di rotazione (depth_of_view)
+            // t.shape[ROTAZIONE][RIGA][COLONNA]
+            if (t.shape[t.depth_of_view][r][c] == 1) {
+                
+                // Calcolo posizione assoluta nel campo
+                row = grid_y + r;
+                col = grid_x + c;
+
+                // A. Controllo Bordi (Muri e Pavimento)
+                if (col < 0 || col > 10 || row > 20) {
+                    return 1; // Collisione Bordo
+                }
+
+                // B. Controllo Sovrapposizione con Blocchi Esistenti
+                if (row >= 0) {
+                    int valore_pezzo = 1; 
+                    // Nota: Qui assumiamo field_matrix[10][20] cioè [COL][ROW] come da tua indicazione
+                    int valore_campo = field_matrix[col][row]; 
+                    
+                    if (valore_pezzo + valore_campo >= 2) {
+                        return 1; // Collisione con altro pezzo
+                    }
+                }
+            }
         }
     }
+
+    return 0; // Tutto libero
 }
-
-// function that update the field matrix with the new tetraminoes
-void update_field_matrix(uint8_t matrix[4][4], Coord_str coord){
-
-
-
-}
+		
 
 Coord_str coordinate_su_schermo(Coord_str coord_matrice){
     Coord_str coord_schermo;
-    coord_schermo.x = coord_matrice.x * dim; // supponendo che ogni cella sia 14 pixel di larghezza
-    coord_schermo.y = coord_matrice.y * dim; // supponendo che ogni cella sia 14 pixel di altezza
+    int offset_x = 3;   // Bordo sinistro
+    int offset_y = 20;  // Barra superiore
+    
+    coord_schermo.x = offset_x + (coord_matrice.x * dim);
+    coord_schermo.y = offset_y + (coord_matrice.y * dim);
     return coord_schermo;
 }
 
@@ -141,20 +202,22 @@ Coord_str coordinate_su_schermo(Coord_str coord_matrice){
 * Return         : None
 * Attention		   : None
 *******************************************************************************/
-void LCD_tetraminoes(uint8_t matrice[4][4], Coord_str xy, uint8_t set){
+void LCD_tetraminoes(Tetromino tetramino, Coord_str xy, int mode){
 	
 	int i = 0;
 	int l = 0;
 	int h = 0;
 	uint16_t x0 = xy.x;
 	uint16_t y0 = xy.y;
-	uint16_t color = Black;
-
-	if (set)color = Yellow;
+	uint16_t color = tetramino.color;
+	if(!mode){color = Black;};
+	
+  const uint8_t (*matrice)[4] = tetramino.shape[tetramino.depth_of_view];  
+	//uint8_t matrice[4][4] = tetramino.shape[tetramino.depth_of_view];
+	
 
 	for(l=0;l<4;l++){	//row
 		for(i=0;i<4;i++){	//column
-			
 			if(matrice[l][i]){
 				for(h=0;h<dim+1;h++){
 					LCD_DrawLine(x0+i*dim, y0+l*dim+h, (x0+i*dim)+dim, y0+l*dim+h, color);
@@ -176,11 +239,15 @@ void LCD_tetraminoes(uint8_t matrice[4][4], Coord_str xy, uint8_t set){
 * Return         : None
 * Attention		   : None
 *******************************************************************************/
-void update_score(uint16_t score, uint16_t topScore, uint16_t lines){
+void update_score(uint16_t score_increment, uint16_t topScore_increment, uint16_t lines_increment){
 	
 	uint8_t score_char_ptr[6];
 	uint8_t topScore_char_ptr[6];
 	uint8_t lines_char_ptr[6];
+	
+	score += score_increment;
+	topScore += topScore_increment;
+	lines += lines_increment;
 	
 	uint16_to_ascii_uint8(score, score_char_ptr);
 	uint16_to_ascii_uint8(topScore, topScore_char_ptr);
@@ -198,14 +265,10 @@ void update_score(uint16_t score, uint16_t topScore, uint16_t lines){
 }
 
 
-/******************************************************************************
-* Function Name  : uint16_to_ascii_uint8
-* Description    : this function convert a 16-bit integer in a 8-bit poiter in ASCII standard
-* Input          : - val: 16-bit integer 
-* Output         : - *dest: pointer to ASCII converted string
-* Return         : None
-* Attention		   : None
-*******************************************************************************/
+/**
+ * Converts a uint16_t to ASCII in a uint8_t buffer.
+ * Max value 65535 requires a 6-byte buffer.
+ */
 void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest) {
     // We work from the end of the potential max string length
     // [d1][d2][d3][d4][d5][\0]
@@ -237,64 +300,121 @@ void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest) {
     dest[j] = '\0'; // Null-terminate
 }
 
+void update_field_matrix(Tetromino t, int current_x_pixel, int current_y_pixel){
+    int r, c;
+    int row, col;
+		uint8_t check_lines = 0;
+	
+    
+    // Convertiamo pixel in indici griglia
+    int grid_x = (current_x_pixel + dim - 1) / dim;
+    int grid_y = (current_y_pixel + dim - 1) / dim;
 
+    for(r = 0; r < 4; r++){
+        for(c = 0; c < 4; c++){
+            // Se nel pezzo c'è un blocco pieno
+            if(t.shape[t.depth_of_view][r][c] == 1){
+                
+                row = grid_y + r;
+                col = grid_x + c;
+
+                // Controllo sicurezza bordi
+                if(row >= 0 && row < 20 && col >= 0 && col < 10){
+                    
+                    // IMPORTANTE: Matrice definita come [10][20] -> [COL][ROW]
+                    field_matrix[col][row] = 1;
+                    
+                }//else raggiunto in bordo fermare il blocco
+
+            }
+        }
+    }
+
+}
 
 /******************************************************************************
 * Function Name  : lfsr_random
-* Description    : this function generate a (semi)random number between 0 and 6 using the LFSR algorithm
-* Input          : None
-* Output         : None
-* Return         : 8-bit unsigned integer
-* Attention		   : None
+* Description    : Genera un numero pseudo-casuale
 *******************************************************************************/
-uint8_t lfsr_random() {
-    static uint8_t state = 0xAC;    //initial seed
-		uint8_t remainder = 0x0;
+uint8_t lfsr_random(void) {
+    static uint8_t state = 0xAC;    // initial seed
+    uint8_t remainder = 0x0;
     uint8_t bit;
 
-		if (state == 0) {
-			state = 0xAC; 
+    if (state == 0) {
+        state = 0xAC; 
     }
     
-		// calculate the feedback bit using XOR logic (Tap bits: 7, 5, 4, 3)
+    // Tap bits: 7, 5, 4, 3
     bit  = ((state >> 7) ^ (state >> 5) ^ (state >> 4) ^ (state >> 3)) & 1;
-    
-    // right-shift by 1 and adding the calculated bit from left (shift to the right output)
     state = (state >> 1) | (bit << 7);
-    
     remainder = state % 7;
 
     return remainder;
 }
 
 /******************************************************************************
-* Function Name  : random_tetramino
-* Description    : this function generate a (semi)random matrix representing a tetramino using the lfsr_random() function
-* Input          : None
-* Output         : - matrix_rand: matrix representing the (semi)random tetramino 
-* Return         : None
-* Attention		   : None
+* Function Name  : generate_random_tetraminoes
+* Description    : Usa lfsr_random per creare un pezzo e un colore casuale
 *******************************************************************************/
-void random_tetramino(uint8_t matrix_rand[4][4]){
-	static uint8_t num = 7;
-	num = lfsr_random();
-	
-	uint8_t temp_char_ptr[6];
-	uint16_to_ascii_uint8(num, temp_char_ptr);
-	GUI_Text(0, 0, (uint8_t *) temp_char_ptr, White, Black);
-	
-	for (i = 0; i < 4; i++) {
-    for (j = 0; j < 4; j++) {
-        if(!num) matrix_rand[i][j] = tetramino_I[i][j];
-				else if(num==1) matrix_rand[i][j] = tetramino_J[i][j];
-				else if(num==2) matrix_rand[i][j] = tetramino_L[i][j];
-				else if(num==3) matrix_rand[i][j] = tetramino_O[i][j];
-				else if(num==4) matrix_rand[i][j] = tetramino_S[i][j];
-				else if(num==5) matrix_rand[i][j] = tetramino_T[i][j];
-				else if(num==6) matrix_rand[i][j] = tetramino_Z[i][j];
-				else GUI_Text(0, 0, (uint8_t *) "funct random_tetramino(...): ERROR", Red, Black);
+void generate_random_tetraminoes(Tetromino* tetramino) {
+    // 1. Usa la tua funzione per scegliere la forma (0-6)
+    uint8_t num = lfsr_random(); 
+		
+	uint8_t lines_char_ptr[6];
+	uint16_to_ascii_uint8(num, lines_char_ptr);
+	GUI_Text(0, 0, (uint8_t *) lines_char_ptr, White, Black);
+    
+    switch(num) {
+        case 0: *tetramino = tetramino_I; break;
+        case 1: *tetramino = tetramino_J; break;
+        case 2: *tetramino = tetramino_L; break;
+        case 3: *tetramino = tetramino_O; break;
+        case 4: *tetramino = tetramino_S; break;
+        case 5: *tetramino = tetramino_T; break;
+        case 6: *tetramino = tetramino_Z; break;
+        default: *tetramino = tetramino_I; break; // Fallback di sicurezza
     }
-	}
+
+    // Reset rotazione (fondamentale quando nasce un nuovo pezzo)
+    tetramino->depth_of_view = 0;
+
+    // 2. Usa di nuovo la tua funzione per scegliere un colore a caso
+    uint8_t color_selection = lfsr_random();
+    
+    switch (color_selection) {
+        case 0: tetramino->color = Grey; break;
+        case 1: tetramino->color = Blue;  break;
+        case 2: tetramino->color = Red; break;
+        case 3: tetramino->color = Magenta; break; 
+        case 4: tetramino->color = Green; break;
+        case 5: tetramino->color = Cyan; break;
+        case 6: tetramino->color = Yellow; break; 
+        default: break; // Tieni colore originale se esce altro
+			
+			
+    }
 
 }
 
+
+uint8_t check_cleared_lines(uint8_t field_matrix[10][20]){
+	uint8_t check_line = 0;
+	uint8_t num_cleared_lines = 0;
+	
+	for (i = 0; i < 20; i++) {//row
+		for (j = 0; j < 10; j++) {//col
+			if(field_matrix[j][i]) check_line++;
+		}
+		if(check_line==10) num_cleared_lines++;
+	}
+	
+	if(num_cleared_lines==4){
+		update_score(600,0,num_cleared_lines);
+	}else{
+		update_score((100*num_cleared_lines),0,num_cleared_lines);
+	}
+	
+	return num_cleared_lines;
+				
+}
