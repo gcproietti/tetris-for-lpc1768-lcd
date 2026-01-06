@@ -156,7 +156,7 @@ int check_collision(Tetromino t, int next_x_pixel, int next_y_pixel) {
                 col = grid_x + c;
 
                 // A. Controllo Bordi (Muri e Pavimento)
-                if (col < 0 || col >= 10 || row >= 20) {
+                if (col < 0 || col > 10 || row > 20) {
                     return 1; // Collisione Bordo
                 }
 
@@ -315,8 +315,6 @@ void update_field_matrix(Tetromino t, int current_x_pixel, int current_y_pixel){
                     // IMPORTANTE: Matrice definita come [10][20] -> [COL][ROW]
                     field_matrix[col][row] = 1; 
                     
-                    // Opzionale: se volete salvare il colore, la matrice dovrebbe essere di int/struct
-                    // ma per la logica di base '1' va benissimo.
                 }
             }
         }
@@ -378,5 +376,8 @@ void generate_random_tetraminoes(Tetromino* tetramino) {
         case 5: tetramino->color = Cyan; break;
         case 6: tetramino->color = Yellow; break; 
         default: break; // Tieni colore originale se esce altro
+			
+			
     }
+
 }

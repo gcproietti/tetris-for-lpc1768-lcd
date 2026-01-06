@@ -9,6 +9,9 @@
 // Nota: x_init e y_init potrebbero non servire più se usi coord_init (3,0)
 #define x_init 41 
 #define y_init 23
+#define START_X_POS_TETRAMINO 3
+#define START_Y_POS_TETRAMINO 0
+
 
 #ifndef i
 extern uint16_t i;
