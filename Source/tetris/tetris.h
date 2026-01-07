@@ -70,9 +70,9 @@ void update_score(uint16_t score_increment, uint16_t topScore_increment, uint16_
 void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest);
 
 // Nuovi prototipi aggiornati con Struct Tetromino
-void update_field_matrix(Tetromino t, int current_x_pixel, int current_y_pixel);
-uint8_t check_collision(Tetromino t, int next_x_pixel, int next_y_pixel);
-uint8_t check_cleared_lines(uint8_t field_matrix[10][20]);
-
+void update_field_matrix(Tetromino t, int current_x, int current_y);
+uint8_t check_collision(Tetromino t, int next_x, int next_y);
+void check_and_clear_lines(void);
+void redraw_field(void);
 
 #endif

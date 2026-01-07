@@ -136,14 +136,10 @@ void rotate_tetramino(Tetromino* tetramino){
 			- int next_x_pixel: posizione orizzontale in PIXEL
 			- int next_y_pixel: posizione verticale in PIXEL
 */
-uint8_t check_collision(Tetromino t, int next_x_pixel, int next_y_pixel) {
+uint8_t check_collision(Tetromino t, int grid_x, int grid_y) {
     int r, c;           // Indici locali tetramino (0-3)
     int row, col;       // Indici globali campo (0-19, 0-9)
     
-    // 1. Conversione da pixel a griglia (Grid Coordinate)
-    // Formula per arrotondamento per eccesso (ceiling): (val + dim - 1) / dim
-    int grid_x = (next_x_pixel + dim - 1) / dim; 
-    int grid_y = (next_y_pixel + dim - 1) / dim;
 
     // 2. Ciclo sui 4x4 blocchi del pezzo
     for (r = 0; r < 4; r++) {
@@ -165,12 +161,8 @@ uint8_t check_collision(Tetromino t, int next_x_pixel, int next_y_pixel) {
 
                 // B. Controllo Sovrapposizione con Blocchi Esistenti
                 if (row >= 0) {
-                    int valore_pezzo = 1; 
-                    // Nota: Qui assumiamo field_matrix[10][20] cioè [COL][ROW] come da tua indicazione
-                    int valore_campo = field_matrix[col][row]; 
-                    
-                    if (valore_pezzo + valore_campo >= 2) {
-                        return 1; // Collisione con altro pezzo
+                    if (field_matrix[col][row] != 0) { // Se diverso da 0 è occupato
+                        return 1; 
                     }
                 }
             }
@@ -300,15 +292,11 @@ void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest) {
     dest[j] = '\0'; // Null-terminate
 }
 
-void update_field_matrix(Tetromino t, int current_x_pixel, int current_y_pixel){
+void update_field_matrix(Tetromino t, int grid_x, int grid_y){
     int r, c;
     int row, col;
 		uint8_t check_lines = 0;
 	
-    
-    // Convertiamo pixel in indici griglia
-    int grid_x = (current_x_pixel + dim - 1) / dim;
-    int grid_y = (current_y_pixel + dim - 1) / dim;
 
     for(r = 0; r < 4; r++){
         for(c = 0; c < 4; c++){
@@ -398,23 +386,102 @@ void generate_random_tetraminoes(Tetromino* tetramino) {
 }
 
 
-uint8_t check_cleared_lines(uint8_t field_matrix[10][20]){
-	uint8_t check_line = 0;
-	uint8_t num_cleared_lines = 0;
+void check_and_clear_lines(void) {
 	
-	for (i = 0; i < 20; i++) {//row
-		for (j = 0; j < 10; j++) {//col
-			if(field_matrix[j][i]) check_line++;
-		}
-		if(check_line==10) num_cleared_lines++;
-	}
+    int lines_cleared_in_this_step = 0; // Contatore locale per questo frame
+		int row, col, r, c;
 	
-	if(num_cleared_lines==4){
-		update_score(600,0,num_cleared_lines);
-	}else{
-		update_score((100*num_cleared_lines),0,num_cleared_lines);
-	}
 	
-	return num_cleared_lines;
+    // 1. Scansione e Cancellazione (Logica della funzione precedente)
+    for (row = 19; row >= 0; row--) {
+        int is_full = 1;
+        
+        for (col = 0; col < 10; col++) {
+            if (field_matrix[col][row] == 0) {
+                is_full = 0;
+                break;
+            }
+        }
+        
+        if (is_full) {
+            lines_cleared_in_this_step++; // Trovata una riga!
+            
+            // Shifta tutto giù
+            for (r = row; r > 0; r--) {
+                for (c = 0; c < 10; c++) {
+                    field_matrix[c][r] = field_matrix[c][r - 1];
+                }
+            }
+            // Pulisci riga 0
+            for (c = 0; c < 10; c++) {
+                field_matrix[c][0] = 0;
+            }
+            
+            row++; // Ricontrolla la stessa riga (perché è scesa roba nuova)
+        }
+    }
+    
+    // 2. Calcolo Punteggio (Logica della funzione che mi hai appena mandato)
+    if (lines_cleared_in_this_step > 0) {
+        
+        // Aggiorna contatore totale righe
+        lines += lines_cleared_in_this_step; 
+        
+        // Calcolo Punti (Regole Tetris classiche o tue)
+        if (lines_cleared_in_this_step >= 4) {
+            score += 600; // Tetris!
+        } else {
+            score += (100 * lines_cleared_in_this_step);
+        }
+        
+				// Aggiornamento topScore
+				if(score > topScore){
+					topScore = score;
+				}
 				
+        // Aggiorna Display
+        update_score(score, topScore, lines);
+        
+        // Ridisegna Campo
+        redraw_field();
+    }
 }
+
+void redraw_field(void)
+{
+    int i, j, h; // Variabili per i cicli
+    
+    // Scansioniamo tutta la matrice logica
+    for (j = 0; j < 20; j++) {      // Righe (0-19)
+        for (i = 0; i < 10; i++) {  // Colonne (0-9)
+            
+            // Calcolo coordinate schermo (senza struct per velocità)
+            // Offset X = 3 (bordo sinistro), Offset Y = 20 (barra sopra)
+            // Assicurati che questi offset coincidano con la tua coordinate_su_schermo!
+            uint16_t x0 = 3 + (i * dim); 
+            uint16_t y0 = 20 + (j * dim); // O 0 se usi i pixel assoluti dal RIT
+            
+            // Se c'è un blocco
+            if (field_matrix[i][j] != 0) {
+                
+                // Se nella matrice hai salvato '1', usiamo un colore fisso (es. White o Grey)
+                // Se invece modifichi field_matrix per essere uint16_t e salvare il colore, usa quello.
+                uint16_t color = White; 
+                
+                // Disegna usando LINEE (molto più veloce dei punti)
+                for(h = 0; h < dim; h++){
+                    LCD_DrawLine(x0, y0 + h, x0 + dim - 1, y0 + h, color);
+                }
+            } 
+            else {
+                // Cancella il blocco (disegna nero)
+                // Nota: ridisegnare tutto il nero è lento. 
+                // Se il gioco rallenta, disegna nero solo se necessario.
+                for(h = 0; h < dim; h++){
+                    LCD_DrawLine(x0, y0 + h, x0 + dim - 1, y0 + h, Black);
+                }
+            }
+        }
+    }
+}
+
