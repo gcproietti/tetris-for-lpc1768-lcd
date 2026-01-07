@@ -99,29 +99,46 @@ Tetromino current_tetromino;
 
 void tetrisInit(){
 
-	//----START: DRAW PLAYING FIELD----
-	for(i=0;i<3;i++){
-		LCD_DrawLine(i, 20, i, 319, White);
-		LCD_DrawLine(0, 319-i, 150, 319-i, White);
-		LCD_DrawLine(150-i, 319, 150-i, 20, White);
-		LCD_DrawLine(150, 20+i, 0, 20+i, White);
-	}
-	//----END: DRAW PLAYING FIELD----
-	// (0,20) - (150,20)
-	// |						|
-	// (0,319) - (150,319)
-	
-	update_score(0,0,0);
-	
-	coord_init.x = 3;				// Non devono essere x = 3 e y = 0?
-	coord_init.y = 0;
-	
-	// initialization of field matrix with all of the elements at zero
-	for(i = 0; i < 10; i++){
-		for(j = 0; j < 20; j++){
-				field_matrix[i][j] = 0;
-		}
-	}
+	  // Reset variabili
+    score = 0;
+    lines = 0;
+    // topScore non resettato per mantenerlo tra partite
+    
+    // Coordinate iniziali per il pezzo (Centrato in alto)
+    coord_init.x = 3; 
+    coord_init.y = 0; 
+    
+    // Inizializza la matrice di gioco a zero
+    for(i = 0; i < 10; i++){
+        for(j = 0; j < 20; j++){
+            field_matrix[i][j] = 0;
+        }
+    }
+    
+    update_score(0,0,0); // Reset display punteggio
+
+    //---- DISEGNO CAMPO DI GIOCO (Expanded) ----
+    // Disegniamo il bordo 1 pixel FUORI dall'area di gioco
+    // Area Gioco: X[3..143], Y[20..300]
+    // Bordo: X[2..144], Y[19..301]
+    
+    int border_left   = 2;   
+    int border_right  = 144; 
+    int border_top    = 17;  
+    int border_bottom = 301; 
+    
+    for(i=0; i<3; i++){
+        // Rettangolo che si allarga verso l'esterno
+        int L = border_left - i;
+        int R = border_right + i;
+        int T = border_top - i;
+        int B = border_bottom + i;
+        
+        LCD_DrawLine(L, T, R, T, White); // Sopra
+        LCD_DrawLine(L, B, R, B, White); // Sotto
+        LCD_DrawLine(L, T, L, B, White); // Sinistra
+        LCD_DrawLine(R, T, R, B, White); // Destra
+    }
 	
 	generate_random_tetraminoes(&current_tetromino);
 
@@ -155,7 +172,7 @@ uint8_t check_collision(Tetromino t, int grid_x, int grid_y) {
                 col = grid_x + c;
 
                 // A. Controllo Bordi (Muri e Pavimento)
-                if (col < 0 || col > 10 || row > 20) {
+                if (col < 0 || col >= 10 || row >= 20) {
                     return 1; // Collisione Bordo
                 }
 

@@ -22,11 +22,16 @@ extern uint16_t j;
 
 // --- DEFINIZIONE STRUTTURE ---
 
-typedef struct {
-    uint16_t x;
-    uint16_t y;
-} Coord_str;
+//typedef struct {
+//    uint16_t x;
+//    uint16_t y;
+//} Coord_str;
 
+typedef struct {
+    int x;
+    int y;
+} Coord_str;
+	
 typedef struct {
     uint8_t shape[4][4][4]; 
     uint16_t color;
