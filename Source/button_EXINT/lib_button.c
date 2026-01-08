@@ -19,9 +19,9 @@ void BUTTON_init(void) {
   LPC_SC->EXTMODE = 0x7;
 
   NVIC_EnableIRQ(EINT2_IRQn);              /* enable irq in nvic                 */
-	NVIC_SetPriority(EINT2_IRQn, 1);				 /* priority, the lower the better     */
+	NVIC_SetPriority(EINT2_IRQn, 2);				 /* priority, the lower the better     */
   NVIC_EnableIRQ(EINT1_IRQn);              /* enable irq in nvic                 */
-	NVIC_SetPriority(EINT1_IRQn, 2);				 
+	NVIC_SetPriority(EINT1_IRQn, 1);				 
   NVIC_EnableIRQ(EINT0_IRQn);              /* enable irq in nvic                 */
 	NVIC_SetPriority(EINT0_IRQn, 3);				 /* decreasing priority	from EINT2->0	 */
 }

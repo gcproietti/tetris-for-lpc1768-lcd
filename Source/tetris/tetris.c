@@ -93,15 +93,23 @@ uint16_t score = 0;
 uint16_t topScore = 0;
 uint16_t lines = 0;
 
-uint8_t field_matrix[10][20];
+uint16_t field_matrix[10][20];
 
 Tetromino current_tetromino;
 
+volatile uint8_t state_game = 0;           // 1 = play, 0 = pause
+volatile uint8_t gravity_tick = 0;
+volatile uint8_t rotation_requested = 0;
+volatile uint8_t gameover_flag = 0;
+extern volatile float periodo; //sec
+volatile uint8_t move_right_requested = 0;
+volatile uint8_t move_left_requested = 0;
+volatile uint8_t reset_requested = 0;
+
 void tetrisInit(){
 
-	  // Reset variabili
-    score = 0;
-    lines = 0;
+				LCD_Clear(Black);
+
     // topScore non resettato per mantenerlo tra partite
     
     // Coordinate iniziali per il pezzo (Centrato in alto)
@@ -115,8 +123,12 @@ void tetrisInit(){
         }
     }
     
-    update_score(0,0,0); // Reset display punteggio
-
+		// Reset/update variables
+		if(score>topScore) topScore = score;
+    score = 0;
+    lines = 0;
+		update_score(0,0,0); // Reset display punteggio
+			
     //---- DISEGNO CAMPO DI GIOCO (Expanded) ----
     // Disegniamo il bordo 1 pixel FUORI dall'area di gioco
     // Area Gioco: X[3..143], Y[20..300]
@@ -140,7 +152,12 @@ void tetrisInit(){
         LCD_DrawLine(R, T, R, B, White); // Destra
     }
 	
-	generate_random_tetraminoes(&current_tetromino);
+		GUI_Text(160, 240, (uint8_t *) "PRESS", Yellow, Black);
+		GUI_Text(160, 260, (uint8_t *) "KEY1", Yellow, Black);
+		GUI_Text(160, 280, (uint8_t *) "TO START", Yellow, Black);
+		
+		generate_random_tetraminoes(&current_tetromino);
+		
 
 }
 
@@ -157,7 +174,7 @@ uint8_t check_collision(Tetromino t, int grid_x, int grid_y) {
     int r, c;           // Indici locali tetramino (0-3)
     int row, col;       // Indici globali campo (0-19, 0-9)
     
-
+		//__disable_irq(); // DISABILITA INTERRUPTS
     // 2. Ciclo sui 4x4 blocchi del pezzo
     for (r = 0; r < 4; r++) {
         for (c = 0; c < 4; c++) {
@@ -185,7 +202,7 @@ uint8_t check_collision(Tetromino t, int grid_x, int grid_y) {
             }
         }
     }
-
+		//__enable_irq(); // RIABILITA INTERRUPTS
     return 0; // Tutto libero
 }
 		
@@ -221,6 +238,7 @@ void LCD_tetraminoes(Tetromino tetramino, Coord_str xy, int mode){
 	uint16_t color = tetramino.color;
 	if(!mode){color = Black;};
 	
+	//__disable_irq(); // DISABILITA INTERRUPTS
   const uint8_t (*matrice)[4] = tetramino.shape[tetramino.depth_of_view];  
 	//uint8_t matrice[4][4] = tetramino.shape[tetramino.depth_of_view];
 	
@@ -235,7 +253,7 @@ void LCD_tetraminoes(Tetromino tetramino, Coord_str xy, int mode){
 			
 		}
 	}
-
+//__enable_irq(); // RIABILITA INTERRUPTS
 }
 
 /******************************************************************************
@@ -318,7 +336,7 @@ void update_field_matrix(Tetromino t, int grid_x, int grid_y){
     for(r = 0; r < 4; r++){
         for(c = 0; c < 4; c++){
             // Se nel pezzo c'è un blocco pieno
-            if(t.shape[t.depth_of_view][r][c] == 1){
+            if(t.shape[t.depth_of_view][r][c] > 0){
                 
                 row = grid_y + r;
                 col = grid_x + c;
@@ -327,7 +345,7 @@ void update_field_matrix(Tetromino t, int grid_x, int grid_y){
                 if(row >= 0 && row < 20 && col >= 0 && col < 10){
                     
                     // IMPORTANTE: Matrice definita come [10][20] -> [COL][ROW]
-                    field_matrix[col][row] = 1;
+                    field_matrix[col][row] = t.color;
                     
                 }//else raggiunto in bordo fermare il blocco
 
@@ -365,10 +383,6 @@ uint8_t lfsr_random(void) {
 void generate_random_tetraminoes(Tetromino* tetramino) {
     // 1. Usa la tua funzione per scegliere la forma (0-6)
     uint8_t num = lfsr_random(); 
-		
-	uint8_t lines_char_ptr[6];
-	uint16_to_ascii_uint8(num, lines_char_ptr);
-	GUI_Text(0, 0, (uint8_t *) lines_char_ptr, White, Black);
     
     switch(num) {
         case 0: *tetramino = tetramino_I; break;
@@ -439,29 +453,15 @@ void check_and_clear_lines(void) {
     }
     
     // 2. Calcolo Punteggio (Logica della funzione che mi hai appena mandato)
-    if (lines_cleared_in_this_step > 0) {
+    if (lines_cleared_in_this_step > 0)   redraw_field();        // Ridisegna Campo
         
-        // Aggiorna contatore totale righe
-        lines += lines_cleared_in_this_step; 
+		// Calcolo Punti (Regole Tetris classiche o tue)
+		if (lines_cleared_in_this_step >= 4) {
+				update_score(600, 0, lines_cleared_in_this_step); // Tetris!
+		} else {
+				update_score(lines_cleared_in_this_step*100, 0, lines_cleared_in_this_step);
+		}
         
-        // Calcolo Punti (Regole Tetris classiche o tue)
-        if (lines_cleared_in_this_step >= 4) {
-            score += 600; // Tetris!
-        } else {
-            score += (100 * lines_cleared_in_this_step);
-        }
-        
-				// Aggiornamento topScore
-				if(score > topScore){
-					topScore = score;
-				}
-				
-        // Aggiorna Display
-        update_score(score, topScore, lines);
-        
-        // Ridisegna Campo
-        redraw_field();
-    }
 }
 
 void redraw_field(void)
@@ -483,11 +483,11 @@ void redraw_field(void)
                 
                 // Se nella matrice hai salvato '1', usiamo un colore fisso (es. White o Grey)
                 // Se invece modifichi field_matrix per essere uint16_t e salvare il colore, usa quello.
-                uint16_t color = White; 
+                //uint16_t color = White; 
                 
                 // Disegna usando LINEE (molto più veloce dei punti)
                 for(h = 0; h < dim; h++){
-                    LCD_DrawLine(x0, y0 + h, x0 + dim - 1, y0 + h, color);
+                    LCD_DrawLine(x0, y0 + h, x0 + dim - 1, y0 + h, field_matrix[i][j]);
                 }
             } 
             else {
@@ -502,3 +502,173 @@ void redraw_field(void)
     }
 }
 
+void execute_hard_drop_logic(){
+					int max_drops = 20;  // Safety limit to prevent infinite loops
+			
+					// 1. Erase the tetromino from its current position (Color 0 = background)
+					LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 0);
+					
+					// 2. Calculate the landing position (simulate gravity loop)
+					// Check collision for the next row down; if free, move y down.
+					while (check_collision(current_tetromino, coord_init.x, coord_init.y + 1) == 0 
+								 && max_drops-- > 0) {
+							coord_init.y++;
+					}
+			
+					// 3. Draw the tetromino at the final impact position (Color 1 = foreground)
+					LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 1);
+			
+					// 4. Lock the piece into the game grid matrix
+					update_field_matrix(current_tetromino, coord_init.x, coord_init.y);
+					
+					// Gestione punteggio
+					//score += 10;
+					//if (score > topScore) topScore = score;
+					//update_score(score, topScore, lines);
+					update_score(10, 0, 0);
+					
+					check_and_clear_lines();
+					
+					// 5. Reset spawn coordinates for the new piece
+					coord_init.x = 3;
+					coord_init.y = 0;
+			
+					// 6. Generate the next piece
+					generate_random_tetraminoes(&current_tetromino);
+					
+					// 7. Check Game Over immediately after Hard Drop
+					 if (check_collision(current_tetromino, coord_init.x, coord_init.y + 1) == 1) { 
+							void GUI_gameover_view();
+					}
+}
+
+
+
+void execute_rotation_logic(){
+		// 1. Create a temporary copy
+		Tetromino temp = current_tetromino;
+		
+		// 2. Rotate the copy
+		rotate_tetramino(&temp);
+		
+		// 3. Check if the rotated copy fits
+		if (check_collision(temp, coord_init.x, coord_init.y) == 0) {
+				
+				// Erase old (current shape)
+				LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 0);
+				
+				// Update official struct with the rotated one
+				current_tetromino = temp; 
+				
+				// Draw new (rotated shape)
+				LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 1);
+		}
+}
+
+
+
+void handle_gravity() {
+            // Check Collision: Convert grid coordinates to pixels (* dim)
+            // Check future position: y + 1
+						//__disable_irq(); // DISABILITA INTERRUPTS
+            if (check_collision(current_tetromino, coord_init.x, coord_init.y + 1) == 0) {
+                
+                // 1. Erase old position
+                LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 0);
+                
+                // 2. Update Logic (Grid)
+                coord_init.y++; // Move down by 1 block
+                
+                // 3. Draw new position
+                LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 1);
+            }
+            else {
+                // HIT THE BOTTOM OR ANOTHER PIECE
+                update_field_matrix(current_tetromino, coord_init.x, coord_init.y);
+								update_score(10,0,0);
+								check_and_clear_lines();
+								
+                // Reset coordinates to top spawn position
+                coord_init.x = 3; 
+                coord_init.y = 0;
+                
+                // Generate a new piece
+                generate_random_tetraminoes(&current_tetromino);
+                
+                // Check for GAME OVER (Collision immediately after spawn)
+                if (check_collision(current_tetromino, coord_init.x, coord_init.y + 1) == 1) { 
+									//GUI_gameover_view();
+									//GUI_Text(0, 0, (uint8_t *)"GAME OVER", White, Red);
+									GUI_gameover_view();
+									
+                }
+            }
+						//__enable_irq(); // RIABILITA INTERRUPTS
+}
+
+void handle_right_movement() {
+	// Check future position: x + 1
+	if (check_collision(current_tetromino, coord_init.x + 1, coord_init.y) == 0) {
+			//__disable_irq(); // DISABILITA INTERRUPTS
+			LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 0);
+			coord_init.x++; // Move 1 block right
+			LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 1);
+			//__enable_irq(); // RIABILITA INTERRUPTS
+
+	}
+}
+
+void handle_left_movement() {
+	// Check future position: x - 1
+	if (check_collision(current_tetromino, coord_init.x - 1, coord_init.y) == 0) {
+			//__disable_irq(); // DISABILITA INTERRUPTS
+			LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 0);
+			coord_init.x--; // Move 1 block left
+			LCD_tetraminoes(current_tetromino, coordinate_su_schermo(coord_init), 1);
+			//__enable_irq(); // RIABILITA INTERRUPTS
+	}
+}
+
+void GUI_gameover_view() {
+    // ---------------------------------------------------
+    // Configuration
+    // ---------------------------------------------------
+    // Box dimensions and position (Centered for 240px width)
+    int x_start = 30;
+    int y_start = 130;
+    int width = 180;
+    int height = 60;
+    int i, j, idx;
+	
+		state_game = 0; // Stop the game loop
+	
+    // A. Draw Shadow (Offset by 3px for depth)
+    for (j = 0; j < height; j++) {
+        for (i = 0; i < width; i++) {
+            LCD_SetPoint(x_start + i + 3, y_start + j + 3, Black);
+        }
+    }
+
+    // B. Draw Main Box Background (Red) and Border (White)
+    for (j = 0; j < height; j++) {
+        for (i = 0; i < width; i++) {
+            if (i < 2 || i > width - 3 || j < 2 || j > height - 3) {
+                // Draw Border
+                LCD_SetPoint(x_start + i, y_start + j, White);
+            } else {
+                // Draw Body
+                LCD_SetPoint(x_start + i, y_start + j, Red);
+            }
+        }
+    }
+		
+    GUI_Text(x_start + 45, y_start + 22, (uint8_t *)"GAME OVER", White, Red);
+		
+		GUI_Text(160, 220, (uint8_t *) "PAUSE ", Yellow, Black);
+		
+		gameover_flag = 1;
+
+    // Holds the screen for approx 2-3 seconds so the user sees the message
+    //volatile int delay_counter;
+    //for (delay_counter = 0; delay_counter < 10000000; delay_counter++);
+}

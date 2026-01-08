@@ -53,18 +53,25 @@ extern uint16_t topScore;
 extern uint16_t lines;
 
 // Attenzione: field_matrix[10][20] significa accesso [colonna][riga]
-extern uint8_t field_matrix[10][20];
+extern uint16_t field_matrix[10][20];
 
 // CORREZIONE IMPORTANTE: Ora current_tetromino è una Struct, non una matrice 4x4!
 extern Tetromino current_tetromino; 
 
 extern Coord_str coord_init;
 
+extern volatile uint8_t state_game;           // 1 = play, 0 = pause
+extern volatile uint8_t gravity_tick;
+extern volatile uint8_t rotation_requested;
+extern volatile uint8_t gameover_flag;
+extern volatile uint8_t move_right_requested;
+extern volatile uint8_t move_left_requested;
+
 // --- PROTOTIPI FUNZIONI ---
 
-void tetrisInit(void);
+void tetrisInit();
 void generate_random_tetraminoes(Tetromino* tetramino);
-uint8_t lfsr_random(void);
+uint8_t lfsr_random();
 void rotate_tetramino(Tetromino* tetramino);
 
 // Questa è la riga che mancava e causava l'errore "passing int...":
@@ -77,7 +84,15 @@ void uint16_to_ascii_uint8(uint16_t val, uint8_t *dest);
 // Nuovi prototipi aggiornati con Struct Tetromino
 void update_field_matrix(Tetromino t, int current_x, int current_y);
 uint8_t check_collision(Tetromino t, int next_x, int next_y);
-void check_and_clear_lines(void);
-void redraw_field(void);
+void check_and_clear_lines();
+void redraw_field();
+
+
+void execute_hard_drop_logic();
+void execute_rotation_logic();
+void handle_gravity();
+void GUI_gameover_view();
+void handle_right_movement();
+void handle_left_movement();
 
 #endif
